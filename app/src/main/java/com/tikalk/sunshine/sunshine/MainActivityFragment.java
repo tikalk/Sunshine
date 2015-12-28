@@ -33,7 +33,9 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onStop() {
-        openWeatherAsyncTask.cancel(true);
+        if (openWeatherAsyncTask != null) {
+            openWeatherAsyncTask.cancel(true);
+        }
         openWeatherAsyncTask = null;
         super.onDestroy();
     }
