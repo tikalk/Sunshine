@@ -25,3 +25,17 @@ proguard/
 
 # Log Files
 *.log
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+.idea/encodings.xml
+.idea/gradle.xml
+.idea/libraries/appcompat_v7_23_1_1.xml
+.idea/libraries/design_23_1_1.xml
+.idea/libraries/gson_2_5.xml
+.idea/libraries/okhttp_2_7_0.xml
+.idea/libraries/okio_1_6_0.xml
+.idea/libraries/recyclerview_v7_23_1_1.xml
+.idea/libraries/support_annotations_23_1_1.xml
+.idea/libraries/support_v4_23_1_1.xml
+.idea/misc.xml
