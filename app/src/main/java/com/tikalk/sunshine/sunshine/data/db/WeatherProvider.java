@@ -283,7 +283,9 @@ public class WeatherProvider extends ContentProvider {
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
-            getContext().getContentResolver().notifyChange(uri, null);
+            if (rowsDeleted > 0) {
+                getContext().getContentResolver().notifyChange(uri, null);
+            }
         } finally {
             if (db != null) {
                 db.close();
@@ -313,19 +315,17 @@ public class WeatherProvider extends ContentProvider {
                 case WEATHER: {
                     normalizeDate(values);
                     rowsUpdated = db.update(WeatherContract.WeatherEntry.TABLE_NAME, values, selection, selectionArgs);
-                    if (rowsUpdated <= 0)
-                        throw new android.database.SQLException("Failed to delete row with selection " + selection);
-                    break;
+                       break;
                 }
                 case LOCATION:
                     rowsUpdated = db.update(WeatherContract.LocationEntry.TABLE_NAME, values, selection, selectionArgs);
-                    if (rowsUpdated <= 0)
-                        throw new android.database.SQLException("Failed to delete row with selection " + selection);
-                    break;
+                      break;
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
-            getContext().getContentResolver().notifyChange(uri, null);
+            if (rowsUpdated > 0) {
+                getContext().getContentResolver().notifyChange(uri, null);
+            }
         } finally {
             if (db != null) {
                 db.close();
