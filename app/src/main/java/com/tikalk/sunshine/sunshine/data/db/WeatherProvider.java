@@ -222,30 +222,37 @@ public class WeatherProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        final int match = sUriMatcher.match(uri);
         Uri returnUri;
 
-        switch (match) {
-            case WEATHER: {
-                normalizeDate(values);
-                long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, values);
-                if (_id > 0)
-                    returnUri = WeatherContract.WeatherEntry.buildWeatherUri(_id);
-                else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
+        try {
+            final int match = sUriMatcher.match(uri);
+
+            switch (match) {
+                case WEATHER: {
+                    normalizeDate(values);
+                    long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, values);
+                    if (_id > 0)
+                        returnUri = WeatherContract.WeatherEntry.buildWeatherUri(_id);
+                    else
+                        throw new android.database.SQLException("Failed to insert row into " + uri);
+                    break;
+                }
+                case LOCATION:
+                    long _id = db.insert(WeatherContract.LocationEntry.TABLE_NAME, null, values);
+                    if (_id > 0)
+                        returnUri = WeatherContract.LocationEntry.buildLocationUri(_id);
+                    else
+                        throw new android.database.SQLException("Failed to insert row into " + uri);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
-            case  LOCATION:
-                long _id = db.insert(WeatherContract.LocationEntry.TABLE_NAME, null, values);
-                if (_id > 0)
-                    returnUri = WeatherContract.LocationEntry.buildLocationUri(_id);
-                else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
+            getContext().getContentResolver().notifyChange(uri, null);
+        } finally {
+            if (db != null){
+                db.close();
+            }
         }
-        getContext().getContentResolver().notifyChange(uri, null);
         return returnUri;
     }
 
