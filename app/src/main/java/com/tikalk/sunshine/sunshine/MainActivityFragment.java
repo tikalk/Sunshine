@@ -13,13 +13,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.tikalk.sunshine.sunshine.tasks.OpenWeatherAsyncTask;
+import com.tikalk.sunshine.sunshine.tasks.FetchWeatherTask;
 
 
 public class MainActivityFragment extends Fragment {
     public static final String WEATHER_DATA = "WEATHER_DATA";
     private ArrayAdapter<String> arrayAdapter;
-    private OpenWeatherAsyncTask openWeatherAsyncTask;
+    private FetchWeatherTask fetchWeatherTask;
 
     public MainActivityFragment() {
 
@@ -33,10 +33,10 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onStop() {
-        if (openWeatherAsyncTask != null) {
-            openWeatherAsyncTask.cancel(true);
+        if (fetchWeatherTask != null) {
+            fetchWeatherTask.cancel(true);
         }
-        openWeatherAsyncTask = null;
+        fetchWeatherTask = null;
         super.onDestroy();
     }
 
@@ -55,8 +55,8 @@ public class MainActivityFragment extends Fragment {
     }
 
     private void updateWeather() {
-        openWeatherAsyncTask = new OpenWeatherAsyncTask(this.arrayAdapter, getActivity());
-        openWeatherAsyncTask.execute();
+        fetchWeatherTask = new FetchWeatherTask( getActivity(),this.arrayAdapter);
+        fetchWeatherTask.execute();
     }
 
 
