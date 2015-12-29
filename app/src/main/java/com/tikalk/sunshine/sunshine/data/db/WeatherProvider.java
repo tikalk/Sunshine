@@ -266,7 +266,9 @@ public class WeatherProvider extends ContentProvider {
 
         try {
             final int match = sUriMatcher.match(uri);
-
+            if (null == selection) {
+                selection = "1";
+            }
             switch (match) {
                 case WEATHER: {
 
@@ -315,11 +317,11 @@ public class WeatherProvider extends ContentProvider {
                 case WEATHER: {
                     normalizeDate(values);
                     rowsUpdated = db.update(WeatherContract.WeatherEntry.TABLE_NAME, values, selection, selectionArgs);
-                       break;
+                    break;
                 }
                 case LOCATION:
                     rowsUpdated = db.update(WeatherContract.LocationEntry.TABLE_NAME, values, selection, selectionArgs);
-                      break;
+                    break;
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
