@@ -163,11 +163,10 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         Vector<ContentValues> cVVector = new Vector<>(weatherData.getList().size());
 
         for (com.tikalk.sunshine.utils.List list : weatherData.getList()) {
-            calendar.add(Calendar.DAY_OF_MONTH, 1);
+
             final Temp temp = list.getTemp();
-            final double max = isMetric ? temp.getMax() : converToImperial(temp.getMax());
-            final double min = isMetric ? temp.getMin() : converToImperial(temp.getMin());
-            String mainWeather = list.getWeather().iterator().next().getMain();
+            final double max =temp.getMax();
+            final double min = temp.getMin();
             ContentValues weatherValues = new ContentValues();
             List<Weather> weatherList = list.getWeather();
             Weather weather = weatherList.iterator().next();
@@ -177,7 +176,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
             long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
             weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
-            weatherValues.put(WeatherEntry.COLUMN_DATE, list.getDt());
+            weatherValues.put(WeatherEntry.COLUMN_DATE,calendar.getTime().getTime());
             weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, list.getHumidity());
             weatherValues.put(WeatherEntry.COLUMN_PRESSURE, list.getPressure());
             weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, list.getSpeed());
@@ -188,6 +187,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, weather.getId());
 
             cVVector.add(weatherValues);
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
 
         // add to database
