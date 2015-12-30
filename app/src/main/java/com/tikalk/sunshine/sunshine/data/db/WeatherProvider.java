@@ -279,8 +279,9 @@ public class WeatherProvider extends ContentProvider {
                 }
                 case LOCATION:
                     rowsDeleted = db.delete(WeatherContract.LocationEntry.TABLE_NAME, selection, selectionArgs);
-                    if (rowsDeleted <= 0)
-                        throw new android.database.SQLException("Failed to delete row with selection " + selection);
+// Some tests deletes without checking if its empty
+//                    if (rowsDeleted <= 0)
+//                        throw new android.database.SQLException("Failed to delete row with selection " + selection);
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown uri: " + uri);

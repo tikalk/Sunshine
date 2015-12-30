@@ -15,9 +15,11 @@
  */
 package com.tikalk.sunshine.sunshine.tasks;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -114,11 +116,37 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
      * @param lon             the longitude of the city
      * @return the row ID of the added location.
      */
-    long addLocation(String locationSetting, String cityName, double lat, double lon) {
+    public long addLocation(String locationSetting, String cityName, double lat, double lon) {
         // Students: First, check if the location with this city name exists in the db
+        Cursor locationCursor = null;
+        try {
+            locationCursor = mContext.getContentResolver().query(
+                    WeatherContract.LocationEntry.CONTENT_URI,
+                    new String[]{
+                            WeatherContract.LocationEntry._ID,
+                    },
+                    WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
+                    new String[]{locationSetting},
+                    null);
+
+            // these match the indices of the projection
+            if (locationCursor.moveToFirst()) {
+                return locationCursor.getLong(locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID));
+            }
+        } finally {
+            if (locationCursor != null) {
+                locationCursor.close();
+            }
+        }
         // If it exists, return the current ID
         // Otherwise, insert it using the content resolver and the base URI
-        return -1;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+        contentValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
+        contentValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
+        contentValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
+        Uri inserted = mContext.getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI, contentValues);
+        return ContentUris.parseId(inserted);
     }
 
     /*
@@ -165,7 +193,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         for (com.tikalk.sunshine.utils.List list : weatherData.getList()) {
 
             final Temp temp = list.getTemp();
-            final double max =temp.getMax();
+            final double max = temp.getMax();
             final double min = temp.getMin();
             ContentValues weatherValues = new ContentValues();
             List<Weather> weatherList = list.getWeather();
@@ -176,7 +204,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
             long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
             weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
-            weatherValues.put(WeatherEntry.COLUMN_DATE,calendar.getTime().getTime());
+            weatherValues.put(WeatherEntry.COLUMN_DATE, calendar.getTime().getTime());
             weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, list.getHumidity());
             weatherValues.put(WeatherEntry.COLUMN_PRESSURE, list.getPressure());
             weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, list.getSpeed());
@@ -222,7 +250,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     @Override
     protected String[] doInBackground(String... params) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        String location = prefs.getString(mContext.getString(R.string.pref_location_key),mContext.getString(R.string.pref_location_defualt));
+        String location = prefs.getString(mContext.getString(R.string.pref_location_key), mContext.getString(R.string.pref_location_defualt));
         String tempUnit = prefs.getString(mContext.getString(R.string.pref_temp_unit_key), mContext.getString((R.string.pref_temp_units_default)));
         boolean isMetric = tempUnit.equals(mContext.getString((R.string.pref_temp_units_metric)));
         // If there's no zip code, there's nothing to look up.  Verify size of params.
