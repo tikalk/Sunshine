@@ -1,6 +1,8 @@
 package com.tikalk.sunshine.sunshine;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,12 +15,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
 import com.tikalk.sunshine.sunshine.tasks.FetchWeatherTask;
+import com.tikalk.sunshine.utils.Utility;
 
 
 public class MainActivityFragment extends Fragment {
     public static final String WEATHER_DATA = "WEATHER_DATA";
-    private ArrayAdapter<String> arrayAdapter;
+    private ForecastAdapter forecastAdapter;
     private FetchWeatherTask fetchWeatherTask;
 
     public MainActivityFragment() {
@@ -55,7 +59,7 @@ public class MainActivityFragment extends Fragment {
     }
 
     private void updateWeather() {
-        fetchWeatherTask = new FetchWeatherTask( getActivity(),this.arrayAdapter);
+        fetchWeatherTask = new FetchWeatherTask( getActivity());
         fetchWeatherTask.execute();
     }
 
@@ -71,17 +75,26 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
         ListView listView = (ListView) mainView.findViewById(R.id.listview_forecast);
-        this.arrayAdapter = new ArrayAdapter<>(getActivity(), R.layout.list_item_forcast, R.id.list_item_forecast_textview);
-        listView.setAdapter(arrayAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final String item = arrayAdapter.getItem(position);
-                Intent detailedIntent = new Intent(getActivity(), DetailedActivity.class);
-                detailedIntent.putExtra(WEATHER_DATA, item);
-                startActivity(detailedIntent);
-            }
-        });
+        String locationSetting = Utility.getPreferredLocation(getActivity());
+
+        // Sort order:  Ascending, by date.
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                locationSetting, System.currentTimeMillis());
+
+        Cursor cur = getActivity().getContentResolver().query(weatherForLocationUri,
+                null, null, null, sortOrder);
+        this.forecastAdapter = new ForecastAdapter(getActivity(), cur, 0);
+        listView.setAdapter(forecastAdapter);
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                final String item = forecastAdapter.getItem(position);
+//                Intent detailedIntent = new Intent(getActivity(), DetailedActivity.class);
+//                detailedIntent.putExtra(WEATHER_DATA, item);
+//                startActivity(detailedIntent);
+//            }
+//        });
         return mainView;
     }
 }
