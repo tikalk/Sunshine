@@ -161,6 +161,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
+
         String locationQuery = params[0];
 
 

@@ -1,15 +1,14 @@
 package com.tikalk.sunshine.utils;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
-        import android.content.Context;
-        import android.content.SharedPreferences;
-        import android.preference.PreferenceManager;
+import com.tikalk.sunshine.sunshine.R;
 
-        import com.tikalk.sunshine.sunshine.R;
-
-        import java.text.DateFormat;
-        import java.util.Date;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class Utility {
     public static String getPreferredLocation(Context context) {
@@ -27,8 +26,8 @@ public class Utility {
 
     public static String formatTemperature(double temperature, boolean isMetric) {
         double temp;
-        if ( !isMetric ) {
-            temp = 9*temperature/5+32;
+        if (!isMetric) {
+            temp = 9 * temperature / 5 + 32;
         } else {
             temp = temperature;
         }
