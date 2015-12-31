@@ -33,7 +33,7 @@ public class DetailedActivityFragment extends Fragment {
         final View inflate = inflater.inflate(R.layout.fragment_detailed, container, false);
         final TextView textView = (TextView) inflate.findViewById(R.id.detailed_forecast);
         final Intent intent = getActivity().getIntent();
-        textView.setText(intent.getStringExtra(MainActivityFragment.WEATHER_DATA));
+        textView.setText(intent.getStringExtra(ForecastFragment.WEATHER_DATA));
         return inflate;
     }
 
@@ -41,7 +41,7 @@ public class DetailedActivityFragment extends Fragment {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TEXT, getActivity().getIntent().getStringExtra(MainActivityFragment.WEATHER_DATA));
+        intent.putExtra(Intent.EXTRA_TEXT, getActivity().getIntent().getStringExtra(ForecastFragment.WEATHER_DATA));
         setShareIntent(intent);
     }
 
