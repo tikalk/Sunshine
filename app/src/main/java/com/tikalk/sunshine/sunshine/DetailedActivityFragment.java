@@ -18,22 +18,27 @@ import android.widget.TextView;
  */
 public class DetailedActivityFragment extends Fragment {
     private ShareActionProvider mShareActionProvider;
+
     public DetailedActivityFragment() {
         setHasOptionsMenu(true);
     }
+
     // Call to update the share intent
     private void setShareIntent(Intent shareIntent) {
         if (mShareActionProvider != null) {
             mShareActionProvider.setShareIntent(shareIntent);
         }
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View inflate = inflater.inflate(R.layout.fragment_detailed, container, false);
         final TextView textView = (TextView) inflate.findViewById(R.id.detailed_forecast);
         final Intent intent = getActivity().getIntent();
-        textView.setText(intent.getStringExtra(ForecastFragment.WEATHER_DATA));
+        if (intent != null) {
+            textView.setText(intent.getDataString());
+        }
         return inflate;
     }
 
