@@ -129,10 +129,10 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
         String description = data.getString(COL_WEATHER_DESC);
         boolean isMetric = Utility.isMetric(getActivity());
 
-        String high = Utility.formatTemperature(
+        String high = Utility.formatTemperature(getContext(),
                 data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
 
-        String low = Utility.formatTemperature(
+        String low = Utility.formatTemperature(getContext(),
                 data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
 
         mForecast = String.format("%s - %s - %s/%s", date, description, high, low);
