@@ -1,5 +1,5 @@
 
-package com.tikalk.sunshine.utils;
+package com.tikalk.sunshine.utils.json;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,5 +1,5 @@
 
-package com.tikalk.sunshine.utils;
+package com.tikalk.sunshine.utils.json;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ public class WeatherData {
     private String cod;
     private Double message;
     private Integer cnt;
-    private java.util.List<com.tikalk.sunshine.utils.List> list = new ArrayList<com.tikalk.sunshine.utils.List>();
+    private java.util.List<List> list = new ArrayList<List>();
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
@@ -110,7 +110,7 @@ public class WeatherData {
      * @return
      *     The list
      */
-    public java.util.List<com.tikalk.sunshine.utils.List> getList() {
+    public java.util.List<List> getList() {
         return list;
     }
 
@@ -119,11 +119,11 @@ public class WeatherData {
      * @param list
      *     The list
      */
-    public void setList(java.util.List<com.tikalk.sunshine.utils.List> list) {
+    public void setList(java.util.List<List> list) {
         this.list = list;
     }
 
-    public WeatherData withList(java.util.List<com.tikalk.sunshine.utils.List> list) {
+    public WeatherData withList(java.util.List<List> list) {
         this.list = list;
         return this;
     }
