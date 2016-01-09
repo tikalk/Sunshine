@@ -14,32 +14,42 @@ import com.tikalk.sunshine.utils.Utility;
 
 public class MainActivity extends AppCompatActivity {
     public static final String FORECASTFRAGMENT_TAG = "forcast.fragment";
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private String mLocation;
-
+    private boolean mTwoPane;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        mLocation = Utility.getPreferredLocation(this);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+        if (findViewById(R.id.weather_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.weather_detail_container, new DetailedActivityFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
             }
-        });
+        } else {
+            mTwoPane = false;
+        }
     }
 
     @Override
     protected void onResume() {
         String location = Utility.getPreferredLocation(this);
         if (location == null || mLocation == null || !location.equals(location)) {
-            ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
-            ff.onLocationChanged();
-            mLocation = location;
+            if (location != null && !location.equals(mLocation)) {
+                ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
+                if (null != ff) {
+                    ff.onLocationChanged();
+                }
+            }
+
         }
         super.onResume();
 

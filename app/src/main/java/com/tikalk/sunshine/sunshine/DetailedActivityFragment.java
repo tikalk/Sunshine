@@ -1,5 +1,6 @@
 package com.tikalk.sunshine.sunshine;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -85,6 +86,11 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
     }
 
     @Override
+    public Context getContext() {
+        return super.getContext();
+    }
+
+    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         getLoaderManager().initLoader(ForecastFragment.FORECAST_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
@@ -138,7 +144,11 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
 
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Uri weatherForLocationUri = Uri.parse(getActivity().getIntent().getDataString());
+        Intent intent = getActivity().getIntent();
+        if (intent == null || intent.getDataString() == null){
+            return null;
+        }
+        Uri weatherForLocationUri = Uri.parse(intent.getDataString());
 
         return new CursorLoader(getContext(), weatherForLocationUri,
                 DETAIL_COLUMNS, null, null, sortOrder);
