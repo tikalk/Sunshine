@@ -31,6 +31,7 @@ import static com.tikalk.sunshine.sunshine.data.db.WeatherContract.WeatherEntry;
  * A placeholder fragment containing a simple view.
  */
 public class DetailedActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String ARG_URI = "uri";
     private static final String[] DETAIL_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
             WeatherEntry.COLUMN_DATE,
@@ -72,11 +73,27 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
     private TextView mHumidityView;
     private TextView mWindView;
     private TextView mPressureView;
-
-
+    private Uri mUri;
     public DetailedActivityFragment() {
         setHasOptionsMenu(true);
     }
+
+    public static DetailedActivityFragment newInstance(Uri uri) {
+        DetailedActivityFragment detailedActivityFragment = new DetailedActivityFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(ARG_URI, uri);
+        detailedActivityFragment.setArguments(bundle);
+
+        return detailedActivityFragment;
+    }
+
+    public Uri getShownUri(){
+        if (getArguments() == null){
+            return null;
+        }
+        return getArguments().getParcelable(ARG_URI);
+    }
+
 
     // Call to update the share intent
     private void setShareIntent(Intent shareIntent) {
@@ -145,13 +162,21 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
         Intent intent = getActivity().getIntent();
-        if (intent == null || intent.getDataString() == null){
+        Uri weatherForLocationUri = getShownUri();
+
+        if (weatherForLocationUri == null && (intent == null || intent.getDataString() == null)) {
             return null;
         }
-        Uri weatherForLocationUri = Uri.parse(intent.getDataString());
 
-        return new CursorLoader(getContext(), weatherForLocationUri,
-                DETAIL_COLUMNS, null, null, sortOrder);
+        if((intent != null&& intent.getDataString() != null)) {
+            weatherForLocationUri = Uri.parse(intent.getDataString());
+        }
+
+        if (weatherForLocationUri == null){
+            return null;
+        }
+        mUri = weatherForLocationUri;
+        return new CursorLoader(getContext(), weatherForLocationUri, DETAIL_COLUMNS, null, null, sortOrder);
     }
 
 
@@ -215,5 +240,18 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+
+
+    void onLocationChanged( String newLocation ) {
+        // replace the uri, since the location has changed
+        Uri uri = mUri;
+        if (null != uri) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mUri = updatedUri;
+            getLoaderManager().restartLoader(ForecastFragment.FORECAST_LOADER_ID, null, this);
+        }
     }
 }

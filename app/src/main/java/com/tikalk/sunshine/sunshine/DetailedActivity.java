@@ -13,7 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 
-public class DetailedActivity extends AppCompatActivity {
+public class    DetailedActivity extends AppCompatActivity {
 
 
     @Override
