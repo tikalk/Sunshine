@@ -31,7 +31,7 @@ import static com.tikalk.sunshine.sunshine.data.db.WeatherContract.WeatherEntry;
  * A placeholder fragment containing a simple view.
  */
 public class DetailedActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String ARG_URI = "uri";
+    public static final String ARG_URI = "uri";
     private static final String[] DETAIL_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
             WeatherEntry.COLUMN_DATE,
