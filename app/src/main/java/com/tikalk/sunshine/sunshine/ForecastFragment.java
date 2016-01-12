@@ -25,7 +25,7 @@ import com.tikalk.sunshine.utils.Utility;
 
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
+    private int mPosition;
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
@@ -131,8 +131,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                             locationSetting, cursor.getLong(COL_WEATHER_DATE)));
 
                 }
+                mPosition = position;
             }
         });
+
         return mainView;
     }
 

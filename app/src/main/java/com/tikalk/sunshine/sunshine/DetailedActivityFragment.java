@@ -116,6 +116,10 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Bundle args =  getArguments();
+        if (args != null) {
+            mUri =  args.getParcelable(DetailedActivityFragment.ARG_URI);
+        }
         View rootView = inflater.inflate(R.layout.fragment_detailed, container, false);
         mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
         mDateView = (TextView) rootView.findViewById(R.id.detail_date_textview);
@@ -157,26 +161,10 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String locationSetting = Utility.getPreferredLocation(getActivity());
-
-        // Sort order:  Ascending, by date.
-        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Intent intent = getActivity().getIntent();
-        Uri weatherForLocationUri = getShownUri();
-
-        if (weatherForLocationUri == null && (intent == null || intent.getDataString() == null)) {
-            return null;
+        if (null != mUri) {
+            return new CursorLoader(getContext(), mUri, DETAIL_COLUMNS, null, null, null);
         }
-
-        if((intent != null&& intent.getDataString() != null)) {
-            weatherForLocationUri = Uri.parse(intent.getDataString());
-        }
-
-        if (weatherForLocationUri == null){
-            return null;
-        }
-        mUri = weatherForLocationUri;
-        return new CursorLoader(getContext(), weatherForLocationUri, DETAIL_COLUMNS, null, null, sortOrder);
+        return null;
     }
 
 
