@@ -27,6 +27,7 @@ import com.tikalk.sunshine.utils.Utility;
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
+    private static final String LAST_POSITION = "lastPosition";
     private int mPosition;
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -70,6 +71,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        if(savedInstanceState != null){
+            int lastPosition = savedInstanceState.getInt(LAST_POSITION);
+            if (lastPosition >= 0){
+                mPosition = lastPosition;
+            }
+        }
         getLoaderManager().initLoader(FORECAST_LOADER_ID,null, this);
         super.onActivityCreated(savedInstanceState);
     }
@@ -107,7 +114,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onResume() {
-        Log.d(FORECAST_FRAGMENT_TAG,"onResume");
+        Log.d(FORECAST_FRAGMENT_TAG, "onResume");
         super.onResume();
     }
 
@@ -118,6 +125,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         String location = Utility.getPreferredLocation(getActivity());
 
         fetchWeatherTask.execute(location);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(LAST_POSITION, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
 
@@ -146,20 +161,22 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    ((Callback)getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                    ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                             locationSetting, cursor.getLong(COL_WEATHER_DATE)));
 
                 }
                 mPosition = position;
             }
         });
-
+        if (savedInstanceState != null && savedInstanceState.containsKey(LAST_POSITION)){
+            mPosition = savedInstanceState.getInt(LAST_POSITION);
+        }
         return mainView;
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d(FORECAST_FRAGMENT_TAG,"onCreateLoader");
+        Log.d(FORECAST_FRAGMENT_TAG, "onCreateLoader");
         String locationSetting = Utility.getPreferredLocation(getActivity());
 
         // Sort order:  Ascending, by date.
@@ -174,8 +191,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d(FORECAST_FRAGMENT_TAG,"onLoadFinished");
+        Log.d(FORECAST_FRAGMENT_TAG, "onLoadFinished");
         forecastAdapter.swapCursor(data);
+        ListView listView = (ListView) getView().findViewById(R.id.listview_forecast);
+        if(mPosition != ListView.INVALID_POSITION) {
+            listView.smoothScrollToPosition(mPosition);
+        }
     }
 
     @Override

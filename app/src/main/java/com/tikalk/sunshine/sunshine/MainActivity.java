@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements Callback {
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private String mLocation;
     private boolean mTwoPane;
+
     private static final String MAIN_ACTIVITY_LOG = MainActivity.class.getName();
     @Override
     protected void onStart() {
@@ -49,6 +50,18 @@ public class MainActivity extends AppCompatActivity implements Callback {
             mTwoPane = false;
         }
     }
+
+    @Override
+    protected void onPause() {
+        Log.d(MAIN_ACTIVITY_LOG,"onPause");
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
 
     @Override
     protected void onResume() {
