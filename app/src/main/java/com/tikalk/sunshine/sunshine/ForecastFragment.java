@@ -131,6 +131,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         fetchWeatherTask.execute(location);
     }
 
+    public void setTodayLayout(boolean todayLayout){
+        forecastAdapter.setUseTodayLayout(todayLayout);
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (mPosition != ListView.INVALID_POSITION) {

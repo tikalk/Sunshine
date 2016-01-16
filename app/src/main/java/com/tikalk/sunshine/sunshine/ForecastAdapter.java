@@ -19,18 +19,27 @@ package com.tikalk.sunshine.sunshine;
  */
 public class ForecastAdapter extends CursorAdapter {
 
+    @Override
+    public Object getItem(int position) {
+        return super.getItem(position);
+    }
+    private boolean useTodayLayout = false;
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_FUTURE_DAY = 1;
     private static final int VIEW_TYPE_COUNT = 2;
 
     @Override
     public int getItemViewType(int position) {
-        return position == 0 ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY;
+        return position == 0 && useTodayLayout ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY;
     }
 
     @Override
     public int getViewTypeCount() {
         return VIEW_TYPE_COUNT;
+    }
+
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        this.useTodayLayout = useTodayLayout;
     }
 
     /**
