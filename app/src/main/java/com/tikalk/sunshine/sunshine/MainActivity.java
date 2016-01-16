@@ -16,7 +16,7 @@ import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
 import com.tikalk.sunshine.utils.Utility;
 
 public class MainActivity extends AppCompatActivity implements Callback {
-    public static final String FORECASTFRAGMENT_TAG = "forcast.fragment";
+
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private String mLocation;
     private boolean mTwoPane;
