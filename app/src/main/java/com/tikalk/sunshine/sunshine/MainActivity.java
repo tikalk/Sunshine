@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements Callback {
             }
         } else {
             mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
         }
         ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
         ff.setTodayLayout(! mTwoPane);
