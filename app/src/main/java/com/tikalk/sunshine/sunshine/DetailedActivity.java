@@ -13,26 +13,36 @@ import android.view.MenuItem;
 import android.view.View;
 
 
-public class DetailedActivity extends AppCompatActivity {
+public class    DetailedActivity extends AppCompatActivity {
 
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        if (savedInstanceState == null) {
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            if (savedInstanceState == null) {
+                // Create the detail fragment and add it to the activity
+                // using a fragment transaction.
+
+                Bundle arguments = new Bundle();
+                arguments.putParcelable(DetailedActivityFragment.ARG_URI, getIntent().getData());
+
+                DetailedActivityFragment fragment = new DetailedActivityFragment    ();
+                fragment.setArguments(arguments);
+
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.weather_detail_container, fragment)
+                        .commit();
             }
-        });
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        }
 
     }
 

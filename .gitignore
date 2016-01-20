@@ -39,3 +39,4 @@ proguard/
 .idea/libraries/support_annotations_23_1_1.xml
 .idea/libraries/support_v4_23_1_1.xml
 .idea/misc.xml
+/.project

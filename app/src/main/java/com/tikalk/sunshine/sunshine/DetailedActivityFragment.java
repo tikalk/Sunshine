@@ -1,5 +1,6 @@
 package com.tikalk.sunshine.sunshine;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -30,6 +31,7 @@ import static com.tikalk.sunshine.sunshine.data.db.WeatherContract.WeatherEntry;
  * A placeholder fragment containing a simple view.
  */
 public class DetailedActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    public static final String ARG_URI = "uri";
     private static final String[] DETAIL_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
             WeatherEntry.COLUMN_DATE,
@@ -71,17 +73,38 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
     private TextView mHumidityView;
     private TextView mWindView;
     private TextView mPressureView;
-
-
+    private Uri mUri;
     public DetailedActivityFragment() {
         setHasOptionsMenu(true);
     }
+
+    public static DetailedActivityFragment newInstance(Uri uri) {
+        DetailedActivityFragment detailedActivityFragment = new DetailedActivityFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(ARG_URI, uri);
+        detailedActivityFragment.setArguments(bundle);
+
+        return detailedActivityFragment;
+    }
+
+    public Uri getShownUri(){
+        if (getArguments() == null){
+            return null;
+        }
+        return getArguments().getParcelable(ARG_URI);
+    }
+
 
     // Call to update the share intent
     private void setShareIntent(Intent shareIntent) {
         if (mShareActionProvider != null) {
             mShareActionProvider.setShareIntent(shareIntent);
         }
+    }
+
+    @Override
+    public Context getContext() {
+        return super.getContext();
     }
 
     @Override
@@ -93,6 +116,10 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Bundle args =  getArguments();
+        if (args != null) {
+            mUri =  args.getParcelable(DetailedActivityFragment.ARG_URI);
+        }
         View rootView = inflater.inflate(R.layout.fragment_detailed, container, false);
         mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
         mDateView = (TextView) rootView.findViewById(R.id.detail_date_textview);
@@ -134,14 +161,10 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String locationSetting = Utility.getPreferredLocation(getActivity());
-
-        // Sort order:  Ascending, by date.
-        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Uri weatherForLocationUri = Uri.parse(getActivity().getIntent().getDataString());
-
-        return new CursorLoader(getContext(), weatherForLocationUri,
-                DETAIL_COLUMNS, null, null, sortOrder);
+        if (null != mUri) {
+            return new CursorLoader(getContext(), mUri, DETAIL_COLUMNS, null, null, null);
+        }
+        return null;
     }
 
 
@@ -205,5 +228,18 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+
+
+    void onLocationChanged( String newLocation ) {
+        // replace the uri, since the location has changed
+        Uri uri = mUri;
+        if (null != uri) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mUri = updatedUri;
+            getLoaderManager().restartLoader(ForecastFragment.FORECAST_LOADER_ID, null, this);
+        }
     }
 }

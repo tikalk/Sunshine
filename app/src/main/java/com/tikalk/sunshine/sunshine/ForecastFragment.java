@@ -1,6 +1,5 @@
 package com.tikalk.sunshine.sunshine;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,13 +18,16 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.squareup.okhttp.Call;
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
 import com.tikalk.sunshine.sunshine.tasks.FetchWeatherTask;
 import com.tikalk.sunshine.utils.Utility;
 
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
+    private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
+    private static final String LAST_POSITION = "lastPosition";
+    private int mPosition;
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
@@ -56,32 +59,45 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_COORD_LONG = 8;
 
     public static final String WEATHER_DATA = "WEATHER_DATA";
-    public static final int FORECAST_LOADER_ID = 1;
+    public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
     private FetchWeatherTask fetchWeatherTask;
-    private CursorLoader forecastLoader;
 
     public ForecastFragment() {
 
     }
 
     @Override
+    public void onPause() {
+        Log.d(FORECAST_FRAGMENT_TAG, "onPause");
+        super.onPause();
+    }
+
+    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        getLoaderManager().initLoader(FORECAST_LOADER_ID,null, this);
+        if (savedInstanceState != null) {
+            int lastPosition = savedInstanceState.getInt(LAST_POSITION);
+            if (lastPosition >= 0) {
+                mPosition = lastPosition;
+            }
+        }
+        getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
     @Override
     public void onStop() {
+        Log.d(FORECAST_FRAGMENT_TAG, "onStop");
         if (fetchWeatherTask != null) {
             fetchWeatherTask.cancel(true);
         }
         fetchWeatherTask = null;
-        super.onDestroy();
+        super.onStop();
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.d(FORECAST_FRAGMENT_TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.forecastfragment, menu);
     }
 
@@ -94,17 +110,43 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onStart() {
+        Log.d(FORECAST_FRAGMENT_TAG, "onStart");
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        Log.d(FORECAST_FRAGMENT_TAG, "onResume");
+        super.onResume();
+    }
+
     private void updateWeather() {
-        fetchWeatherTask = new FetchWeatherTask( getActivity());
+        Log.d(FORECAST_FRAGMENT_TAG, "updateWeather");
+        fetchWeatherTask = new FetchWeatherTask(getActivity());
 
         String location = Utility.getPreferredLocation(getActivity());
 
         fetchWeatherTask.execute(location);
     }
 
+    public void setTodayLayout(boolean todayLayout){
+        forecastAdapter.setUseTodayLayout(todayLayout);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(LAST_POSITION, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
@@ -112,20 +154,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(FORECAST_FRAGMENT_TAG, "onCreateView");
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
         ListView listView = (ListView) mainView.findViewById(R.id.listview_forecast);
 
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
         listView.setAdapter(forecastAdapter);
-//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                final String item = forecastAdapter.getItem(position);
-//                Intent detailedIntent = new Intent(getActivity(), DetailedActivity.class);
-//                detailedIntent.putExtra(WEATHER_DATA, item);
-//                startActivity(detailedIntent);
-//            }
-//        });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -135,19 +169,22 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailedActivity.class)
-                            .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                                    locationSetting, cursor.getLong(COL_WEATHER_DATE)
-                            ));
-                    startActivity(intent);
+                    ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                            locationSetting, cursor.getLong(COL_WEATHER_DATE)));
+
                 }
+                mPosition = position;
             }
         });
+        if (savedInstanceState != null && savedInstanceState.containsKey(LAST_POSITION)) {
+            mPosition = savedInstanceState.getInt(LAST_POSITION);
+        }
         return mainView;
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d(FORECAST_FRAGMENT_TAG, "onCreateLoader");
         String locationSetting = Utility.getPreferredLocation(getActivity());
 
         // Sort order:  Ascending, by date.
@@ -155,24 +192,31 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
                 locationSetting, System.currentTimeMillis());
 
-         return new CursorLoader(getContext(),weatherForLocationUri,
+        return new CursorLoader(getContext(), weatherForLocationUri,
                 FORECAST_COLUMNS, null, null, sortOrder);
 
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(FORECAST_FRAGMENT_TAG, "onLoadFinished");
         forecastAdapter.swapCursor(data);
+        ListView listView = (ListView) getView().findViewById(R.id.listview_forecast);
+        if (mPosition != ListView.INVALID_POSITION) {
+            listView.smoothScrollToPosition(mPosition);
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d(FORECAST_FRAGMENT_TAG, "onLoaderReset");
         forecastAdapter.swapCursor(null);
     }
 
-    public void onLocationChanged(){
+    public void onLocationChanged() {
+        Log.d(FORECAST_FRAGMENT_TAG, "onLocationChanged");
         updateWeather();
-        getLoaderManager().initLoader(FORECAST_LOADER_ID,null, this);
+        getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
     }
 }
 
