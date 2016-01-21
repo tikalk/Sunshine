@@ -19,10 +19,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.squareup.okhttp.Call;
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
+import com.tikalk.sunshine.sunshine.service.AlarmHelper;
 import com.tikalk.sunshine.sunshine.service.SunshineService;
-import com.tikalk.sunshine.sunshine.tasks.FetchWeatherTask;
 import com.tikalk.sunshine.utils.Utility;
 
 
@@ -124,9 +123,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void updateWeather() {
         Log.d(FORECAST_FRAGMENT_TAG, "updateWeather");
-        Intent intent = new Intent(getContext(),SunshineService.class);
-        intent.putExtra(LOCATION_TAG, Utility.getPreferredLocation(getActivity()));
-        getContext().startService(intent);
+        AlarmHelper.setAlarm(getContext(), SunshineService.AlarmReceiver.class);
 
     }
 

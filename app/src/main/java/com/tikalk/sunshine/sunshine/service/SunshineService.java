@@ -1,6 +1,7 @@
 package com.tikalk.sunshine.sunshine.service;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,10 +39,10 @@ public class SunshineService extends IntentService {
     public SunshineService() {
         super("SunshineService");
     }
+
     private final String LOG_TAG = SunshineService.class.getSimpleName();
 
     private final OkHttpClient client = new OkHttpClient();
-
 
 
     /**
@@ -137,10 +138,11 @@ public class SunshineService extends IntentService {
             getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
         }
     }
+
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        String locationQuery = intent.getExtras().getString(ForecastFragment.LOCATION_TAG);
+            String locationQuery = intent.getExtras().getString(ForecastFragment.LOCATION_TAG);
         String forecastJsonStr;
 
         String format = "json";
@@ -178,7 +180,7 @@ public class SunshineService extends IntentService {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
-            return ;
+            return;
         }
         try {
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
@@ -187,6 +189,18 @@ public class SunshineService extends IntentService {
             e.printStackTrace();
         }
         // This will only happen if there was an error getting or parsing the forecast.
-        return ;
+        return;
+    }
+
+    public static class AlarmReceiver extends BroadcastReceiver {
+        private final String LOG_TAG = AlarmReceiver.class.getSimpleName();
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(LOG_TAG, "Intent Received");
+            Intent serviceIntent = new Intent(context,SunshineService.class);
+            serviceIntent.putExtra(ForecastFragment.LOCATION_TAG, Utility.getPreferredLocation(context));
+            context.startService(serviceIntent);
+        }
     }
 }
