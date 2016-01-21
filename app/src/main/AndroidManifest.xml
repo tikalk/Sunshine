@@ -41,6 +41,7 @@
         <provider
             android:authorities="com.example.android.sunshine.app"
             android:name=".data.db.WeatherProvider" />
+        <service android:name=".service.SunshineService"/>
     </application>
   
 </manifest>

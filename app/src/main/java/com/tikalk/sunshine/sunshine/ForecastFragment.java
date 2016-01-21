@@ -1,5 +1,6 @@
 package com.tikalk.sunshine.sunshine;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.widget.ListView;
 
 import com.squareup.okhttp.Call;
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
+import com.tikalk.sunshine.sunshine.service.SunshineService;
 import com.tikalk.sunshine.sunshine.tasks.FetchWeatherTask;
 import com.tikalk.sunshine.utils.Utility;
 
@@ -27,6 +29,7 @@ import com.tikalk.sunshine.utils.Utility;
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
     private static final String LAST_POSITION = "lastPosition";
+    public static final String LOCATION_TAG="location";
     private int mPosition;
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -61,7 +64,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final String WEATHER_DATA = "WEATHER_DATA";
     public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
-    private FetchWeatherTask fetchWeatherTask;
     private ListView listView;
     public ForecastFragment() {
 
@@ -88,10 +90,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onStop() {
         Log.d(FORECAST_FRAGMENT_TAG, "onStop");
-        if (fetchWeatherTask != null) {
-            fetchWeatherTask.cancel(true);
-        }
-        fetchWeatherTask = null;
+        Intent intent = new Intent(getContext(),SunshineService.class);
+        getContext().stopService(intent);
         super.onStop();
     }
 
@@ -124,11 +124,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void updateWeather() {
         Log.d(FORECAST_FRAGMENT_TAG, "updateWeather");
-        fetchWeatherTask = new FetchWeatherTask(getActivity());
+        Intent intent = new Intent(getContext(),SunshineService.class);
+        intent.putExtra(LOCATION_TAG, Utility.getPreferredLocation(getActivity()));
+        getContext().startService(intent);
 
-        String location = Utility.getPreferredLocation(getActivity());
-
-        fetchWeatherTask.execute(location);
     }
 
     public void setTodayLayout(boolean todayLayout){
