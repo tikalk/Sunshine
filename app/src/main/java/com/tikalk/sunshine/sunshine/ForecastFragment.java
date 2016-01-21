@@ -62,7 +62,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
     private FetchWeatherTask fetchWeatherTask;
-
+    private ListView listView;
     public ForecastFragment() {
 
     }
@@ -156,7 +156,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreateView");
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
-        ListView listView = (ListView) mainView.findViewById(R.id.listview_forecast);
+        listView = (ListView) mainView.findViewById(R.id.listview_forecast);
 
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
         listView.setAdapter(forecastAdapter);
@@ -174,6 +174,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
                 }
                 mPosition = position;
+                adapterView.setSelection(mPosition);
             }
         });
         if (savedInstanceState != null && savedInstanceState.containsKey(LAST_POSITION)) {
@@ -201,9 +202,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(FORECAST_FRAGMENT_TAG, "onLoadFinished");
         forecastAdapter.swapCursor(data);
-        ListView listView = (ListView) getView().findViewById(R.id.listview_forecast);
         if (mPosition != ListView.INVALID_POSITION) {
+            listView.setSelection(mPosition);
             listView.smoothScrollToPosition(mPosition);
+
         }
     }
 
