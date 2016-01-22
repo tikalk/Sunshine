@@ -99,6 +99,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         super.onStop();
     }
 
+
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreateOptionsMenu");
@@ -187,6 +189,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             mPosition = savedInstanceState.getInt(LAST_POSITION);
         }
         return mainView;
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+        forecastAdapter.changeCursor(null);
     }
 
     @Override
