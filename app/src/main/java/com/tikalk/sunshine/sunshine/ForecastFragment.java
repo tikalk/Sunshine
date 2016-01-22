@@ -24,6 +24,10 @@ import com.tikalk.sunshine.sunshine.service.AlarmHelper;
 import com.tikalk.sunshine.sunshine.service.SunshineService;
 import com.tikalk.sunshine.utils.Utility;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnItemClick;
+
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
@@ -63,7 +67,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final String WEATHER_DATA = "WEATHER_DATA";
     public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
-    private ListView listView;
+    @Bind(R.id.listview_forecast)  ListView listView;
+
     public ForecastFragment() {
 
     }
@@ -145,6 +150,21 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+    }
+
+    @OnItemClick({R.id.listview_forecast})
+    public void selectNewDay(int position){
+        // if it cannot seek to that position.
+        Cursor cursor = (Cursor) listView.getItemAtPosition(position);
+        if (cursor != null) {
+            String locationSetting = Utility.getPreferredLocation(getActivity());
+            ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                    locationSetting, cursor.getLong(COL_WEATHER_DATE)));
+
+        }
+        mPosition = position;
+        listView.setSelection(mPosition);
     }
 
     @Override
@@ -152,27 +172,17 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreateView");
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
-        listView = (ListView) mainView.findViewById(R.id.listview_forecast);
-
+        ButterKnife.bind(this,mainView);
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
         listView.setAdapter(forecastAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                            locationSetting, cursor.getLong(COL_WEATHER_DATE)));
-
-                }
-                mPosition = position;
-                adapterView.setSelection(mPosition);
-            }
-        });
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//
+//            @Override
+//            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+//                // CursorAdapter returns a cursor at the correct position for getItem(), or null
+//
+//            }
+//        });
         if (savedInstanceState != null && savedInstanceState.containsKey(LAST_POSITION)) {
             mPosition = savedInstanceState.getInt(LAST_POSITION);
         }

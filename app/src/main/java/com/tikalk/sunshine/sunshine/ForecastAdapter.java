@@ -12,6 +12,9 @@ package com.tikalk.sunshine.sunshine;
         import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
         import com.tikalk.sunshine.utils.Utility;
 
+        import butterknife.Bind;
+        import butterknife.ButterKnife;
+
 
 /**
  * {@link ForecastAdapter} exposes a list of weather forecasts
@@ -123,18 +126,15 @@ public class ForecastAdapter extends CursorAdapter {
     }
 
     public static class ViewHolder {
-        public final ImageView iconView;
-        public final TextView dateView;
-        public final TextView descriptionView;
-        public final TextView highTempView;
-        public final TextView lowTempView;
+          @Bind(R.id.list_item_icon)  ImageView iconView;
+          @Bind(R.id.list_item_date_textview)  TextView dateView;
+          @Bind(R.id.list_item_forecast_textview)  TextView descriptionView;
+          @Bind(R.id.list_item_high_textview)  TextView highTempView;
+          @Bind(R.id.list_item_low_textview)  TextView lowTempView;
 
         public ViewHolder(View view) {
-            iconView = (ImageView) view.findViewById(R.id.list_item_icon);
-            dateView = (TextView) view.findViewById(R.id.list_item_date_textview);
-            descriptionView = (TextView) view.findViewById(R.id.list_item_forecast_textview);
-            highTempView = (TextView) view.findViewById(R.id.list_item_high_textview);
-            lowTempView = (TextView) view.findViewById(R.id.list_item_low_textview);
+            ButterKnife.bind(this, view);
+
         }
     }
 }
