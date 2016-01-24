@@ -22,6 +22,8 @@ import android.widget.ListView;
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
 import com.tikalk.sunshine.sunshine.service.AlarmHelper;
 import com.tikalk.sunshine.sunshine.service.SunshineService;
+import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
+import com.tikalk.sunshine.sunshine.sync.SunshineSyncService;
 import com.tikalk.sunshine.utils.Utility;
 
 import butterknife.Bind;
@@ -130,7 +132,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void updateWeather() {
         Log.d(FORECAST_FRAGMENT_TAG, "updateWeather");
-        AlarmHelper.setAlarm(getContext(), SunshineService.AlarmReceiver.class);
+        SunshineSyncAdapter.syncImmediately(getContext());
+//        AlarmHelper.setAlarm(getContext(), SunshineService.AlarmReceiver.class);
 
     }
 
