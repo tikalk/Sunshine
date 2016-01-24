@@ -89,4 +89,9 @@
     <string name="pref_temp_unit_key">tempUnitKey</string>
     <string name="pref_temp_units_default">Metric</string>
     <string name="share">Share</string>
+
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">sunshine.example.com</string>
+    <string name="content_authority">com.example.android.sunshine.app</string>
+
 </resources>

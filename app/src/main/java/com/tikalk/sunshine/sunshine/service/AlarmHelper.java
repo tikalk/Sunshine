@@ -16,9 +16,9 @@ public class AlarmHelper {
         AlarmManager am=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context,receiverClass);
         intent.putExtra(ONE_TIME, Boolean.FALSE);
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
         //After after 5 seconds
-        am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis(), 1000 * 5 , pi);
+        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000 * 5 , pi);
     }
 
     public static void cancelAlarm(Context context, Class<? extends BroadcastReceiver> receiverClass)
