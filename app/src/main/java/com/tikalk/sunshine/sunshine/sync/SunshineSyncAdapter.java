@@ -8,10 +8,11 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
+import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -21,10 +22,8 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import com.tikalk.sunshine.sunshine.BuildConfig;
-import com.tikalk.sunshine.sunshine.ForecastFragment;
 import com.tikalk.sunshine.sunshine.R;
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
-import com.tikalk.sunshine.sunshine.service.SunshineService;
 import com.tikalk.sunshine.utils.Utility;
 import com.tikalk.sunshine.utils.json.Temp;
 import com.tikalk.sunshine.utils.json.Weather;
@@ -42,6 +41,11 @@ import java.util.Vector;
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
     private final OkHttpClient client = new OkHttpClient();
+    // Interval at which to sync with the weather, in seconds.
+    // 60 seconds (1 minute) * 180 = 3 hours
+    public static final int SYNC_INTERVAL = 60 * 180;
+    public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
     }
@@ -49,7 +53,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         Log.d(LOG_TAG, "onPerformSync Called.");
-        String locationQuery =  Utility.getPreferredLocation(getContext());
+        String locationQuery = Utility.getPreferredLocation(getContext());
 
         String forecastJsonStr;
 
@@ -183,11 +187,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         contentValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
         contentValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
         contentValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
-        Uri inserted =  getContext().getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI, contentValues);
+        Uri inserted = getContext().getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI, contentValues);
         return ContentUris.parseId(inserted);
     }
+
     /**
      * Helper method to have the sync adapter sync immediately
+     *
      * @param context The context used to access the account service
      */
     public static void syncImmediately(Context context) {
@@ -216,7 +222,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
 
         // If the password doesn't exist, the account doesn't exist
-        if ( null == accountManager.getPassword(newAccount) ) {
+        if (null == accountManager.getPassword(newAccount)) {
 
         /*
          * Add the account and account type, no password or user data
@@ -234,5 +240,46 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         }
         return newAccount;
+    }
+
+    /**
+     * Helper method to schedule the sync adapter periodic execution
+     */
+    public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
+        Account account = getSyncAccount(context);
+        String authority = context.getString(R.string.content_authority);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // we can enable inexact timers in our periodic sync
+            SyncRequest request = new SyncRequest.Builder().
+                    syncPeriodic(syncInterval, flexTime).
+                    setSyncAdapter(account, authority).
+                    setExtras(new Bundle()).build();
+            ContentResolver.requestSync(request);
+        } else {
+            ContentResolver.addPeriodicSync(account,
+                    authority, new Bundle(), syncInterval);
+        }
+    }
+
+
+    private static void onAccountCreated(Account newAccount, Context context) {
+        /*
+         * Since we've created an account
+         */
+        SunshineSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
+
+        /*
+         * Without calling setSyncAutomatically, our periodic sync will not be enabled.
+         */
+        ContentResolver.setSyncAutomatically(newAccount, context.getString(R.string.content_authority), true);
+
+        /*
+         * Finally, let's do a sync to get things started
+         */
+        syncImmediately(context);
+    }
+
+    public static void initializeSyncAdapter(Context context) {
+        getSyncAccount(context);
     }
 }

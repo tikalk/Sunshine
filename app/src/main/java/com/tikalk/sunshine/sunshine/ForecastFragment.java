@@ -20,10 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
-import com.tikalk.sunshine.sunshine.service.AlarmHelper;
-import com.tikalk.sunshine.sunshine.service.SunshineService;
 import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
-import com.tikalk.sunshine.sunshine.sync.SunshineSyncService;
 import com.tikalk.sunshine.utils.Utility;
 
 import butterknife.Bind;
@@ -96,8 +93,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onStop() {
         Log.d(FORECAST_FRAGMENT_TAG, "onStop");
-        Intent intent = new Intent(getContext(),SunshineService.class);
-        getContext().stopService(intent);
         super.onStop();
     }
 
