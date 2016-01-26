@@ -179,6 +179,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             cVVector.toArray(cvArray);
             getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
         }
+        Calendar delCalendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH,-8);
+        getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
+                WeatherContract.WeatherEntry.COLUMN_DATE+"<?", new String[]{Long.toString( delCalendar.getTime().getTime())});
     }
 
 
@@ -188,8 +192,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             locationCursor = getContext().getContentResolver().query(
                     WeatherContract.LocationEntry.CONTENT_URI,
-                    new String[]{
-                            WeatherContract.LocationEntry._ID,
+                    new String[]{                            WeatherContract.LocationEntry._ID,
                     },
                     WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
                     new String[]{locationSetting},
