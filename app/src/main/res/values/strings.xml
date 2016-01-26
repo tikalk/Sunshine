@@ -89,7 +89,11 @@
     <string name="pref_temp_unit_key">tempUnitKey</string>
     <string name="pref_temp_units_default">Metric</string>
     <string name="share">Share</string>
-
+    <string name="pref_notif_title">Notification</string>
+    <string name="pref_notif_key">notifications</string>
+    <string name="pref_notif_default_value" translatable="false">true</string>
+    <string name="pref_enable_notifications_false">Disabled</string>
+    <string name="pref_enable_notifications_true" >Enabled</string>
     <!-- SyncAdapter related -->
     <string name="sync_account_type">sunshine.example.com</string>
     <string name="content_authority">com.example.android.sunshine.app</string>

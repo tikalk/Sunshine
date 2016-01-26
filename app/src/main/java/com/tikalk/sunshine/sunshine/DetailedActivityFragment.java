@@ -219,7 +219,7 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
             if (mShareActionProvider != null) {
                 mShareActionProvider.setShareIntent(createShareForecastIntent());
             }
-
+    
         }
     }
 
