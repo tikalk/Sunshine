@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
 import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
@@ -67,7 +68,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
     @Bind(R.id.listview_forecast)  ListView listView;
-
+    @Bind(R.id.emptyList)    TextView emptyTextView;
     public ForecastFragment() {
 
     }
@@ -177,6 +178,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        listView.setEmptyView(emptyTextView);
 
     }
 
