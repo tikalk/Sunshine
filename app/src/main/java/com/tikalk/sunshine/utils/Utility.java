@@ -3,6 +3,8 @@ package com.tikalk.sunshine.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 
@@ -130,6 +132,15 @@ public class Utility {
             SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE");
             return dayFormat.format(dateInMillis);
         }
+    }
+
+    public static boolean isNetworkConnected(Context context){
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return isConnected;
     }
 
     /**

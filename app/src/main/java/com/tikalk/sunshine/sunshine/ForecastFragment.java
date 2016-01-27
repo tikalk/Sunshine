@@ -178,8 +178,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        listView.setEmptyView(emptyTextView);
-
     }
 
     @OnItemClick({R.id.listview_forecast})
@@ -203,6 +201,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this,mainView);
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
+        listView.setEmptyView(emptyTextView);
         listView.setAdapter(forecastAdapter);
 //        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //
@@ -245,10 +244,15 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(FORECAST_FRAGMENT_TAG, "onLoadFinished");
         forecastAdapter.swapCursor(data);
-        if (mPosition != ListView.INVALID_POSITION) {
+        if (mPosition != ListView.INVALID_POSITION && !forecastAdapter.isEmpty()) {
             listView.setSelection(mPosition);
             listView.smoothScrollToPosition(mPosition);
 
+        } else{
+            boolean networkConnected = Utility.isNetworkConnected(getContext());
+            if (!networkConnected){
+                emptyTextView.setText(getContext().getString(R.string.empty_forecast_no_internet));
+            }
         }
     }
 
