@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -40,6 +41,8 @@ import com.tikalk.sunshine.utils.json.WeatherData;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
@@ -66,6 +69,25 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int INDEX_SHORT_DESC = 3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
+
+    public static final int LOCATION_STATUS_OK = 0;
+    public static final int LOCATION_STATUS_SERVER_DOWN = 1;
+    public static final int LOCATION_STATUS_SERVER_INVALID = 2;
+    public static final int LOCATION_STATUS_UNKNOWN = 3;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN})
+    public @interface LocationStatus {
+    }
+
+    private int locationStatus;
+
+
+
+    @LocationStatus
+    public int getLocationStatus() {
+        return locationStatus;
+    }
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -108,11 +130,24 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
             Response response = client.newCall(request).execute();
             if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
+                setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
+                Log.e(LOG_TAG, "Error "+response.message());
+                // If the code didn't successfully get the weather data, there's no point in attemping
+                // to parse it.
+                return;
+
             }
             forecastJsonStr = response.body().string();
+            if (forecastJsonStr == null || forecastJsonStr.isEmpty()){
+                setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
+                Log.e(LOG_TAG, "Error empty response from seerver");
+                // If the code didn't successfully get the weather data, there's no point in attemping
+                // to parse it.
+                return;
+            }
             notifyWeather();
         } catch (IOException e) {
+            setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
@@ -121,14 +156,26 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
         } catch (JSONException e) {
+            setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
+            return;
         }
+        setLocationStatus(LOCATION_STATUS_OK);
         // This will only happen if there was an error getting or parsing the forecast.
         return;
 
     }
 
+    public void setLocationStatus(@LocationStatus int location){
+        SharedPreferences settings =getContext().getSharedPreferences(getContext().getString(R.string.last_shared_pref),Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(getContext().getString(R.string.last_location_long), location);
+
+        // Commit the edits!
+        editor.commit();
+
+    }
     /**
      * Take the String representing the complete forecast in JSON Format and
      * pull out the data we need to construct the Strings needed for the wireframes.
@@ -180,9 +227,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
         }
         Calendar delCalendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_MONTH,-8);
+        calendar.add(Calendar.DAY_OF_MONTH, -8);
         getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
-                WeatherContract.WeatherEntry.COLUMN_DATE+"<?", new String[]{Long.toString( delCalendar.getTime().getTime())});
+                WeatherContract.WeatherEntry.COLUMN_DATE + "<?", new String[]{Long.toString(delCalendar.getTime().getTime())});
     }
 
 
@@ -192,7 +239,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             locationCursor = getContext().getContentResolver().query(
                     WeatherContract.LocationEntry.CONTENT_URI,
-                    new String[]{                            WeatherContract.LocationEntry._ID,
+                    new String[]{WeatherContract.LocationEntry._ID,
                     },
                     WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
                     new String[]{locationSetting},

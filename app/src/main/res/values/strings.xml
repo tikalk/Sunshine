@@ -105,4 +105,6 @@
     <string name="pref_last_notification">last_notification</string>
     <string name="empty_forecast">No Weather Information available</string>
     <string name="empty_forecast_no_internet">No Weather Information available. Internet Connection is not available.</string>
+    <string name="last_shared_pref" translatable="false">last_sgared_pref</string>
+    <string name="last_location_long" translatable="false">last_loc</string>
 </resources>
