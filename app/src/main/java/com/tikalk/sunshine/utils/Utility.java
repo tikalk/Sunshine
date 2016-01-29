@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.text.format.Time;
 
 import com.tikalk.sunshine.sunshine.R;
+import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -193,6 +194,25 @@ public class Utility {
         return String.format(context.getString(windFormat), windSpeed, direction);
     }
 
+    public static void setLocationStatus(Context context,@SunshineSyncAdapter.LocationStatus int location){
+        SharedPreferences settings = getLocationSharedPreferences(context);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(context.getString(R.string.last_location_long), location);
+
+        // Commit the edits!
+        editor.commit();
+    }
+
+    public static SharedPreferences getLocationSharedPreferences(Context context) {
+        return context.getSharedPreferences(context.getString(R.string.last_shared_pref), Context.MODE_PRIVATE);
+    }
+
+
+    public static int getLocationStatus(Context context){
+        SharedPreferences settings = getLocationSharedPreferences(context);
+        return settings.getInt( context.getString(R.string.last_location_long), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
+
+    }
     /*
         * Helper method to provide the icon resource id according to the weather condition id returned
         * by the OpenWeatherMap call.

@@ -1,6 +1,8 @@
 package com.tikalk.sunshine.sunshine;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -29,10 +32,10 @@ import butterknife.ButterKnife;
 import butterknife.OnItemClick;
 
 
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
     private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
     private static final String LAST_POSITION = "lastPosition";
-    public static final String LOCATION_TAG="location";
+    public static final String LOCATION_TAG = "location";
     private int mPosition;
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -67,8 +70,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final String WEATHER_DATA = "WEATHER_DATA";
     public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
-    @Bind(R.id.listview_forecast)  ListView listView;
-    @Bind(R.id.emptyList)    TextView emptyTextView;
+    @Bind(R.id.listview_forecast)
+    ListView listView;
+    @Bind(R.id.emptyList)
+    TextView emptyTextView;
+    private SharedPreferences mSharedPreferences;
+
     public ForecastFragment() {
 
     }
@@ -98,7 +105,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
 
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreateOptionsMenu");
@@ -117,13 +123,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         }
         return super.onOptionsItemSelected(item);
     }
+
     private void openPreferredLocationInMap() {
         // Using the URI scheme for showing a location found on a map.  This super-handy
         // intent can is detailed in the "Common Intents" page of Android's developer site:
         // http://developer.android.com/guide/components/intents-common.html#Maps
-        if ( null != this.forecastAdapter ) {
+        if (null != this.forecastAdapter) {
             Cursor c = forecastAdapter.getCursor();
-            if ( null != c ) {
+            if (null != c) {
                 c.moveToPosition(0);
                 String posLat = c.getString(COL_COORD_LAT);
                 String posLong = c.getString(COL_COORD_LONG);
@@ -141,6 +148,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         }
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
     @Override
     public void onStart() {
         Log.d(FORECAST_FRAGMENT_TAG, "onStart");
@@ -160,7 +174,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     }
 
-    public void setTodayLayout(boolean todayLayout){
+    public void setTodayLayout(boolean todayLayout) {
         forecastAdapter.setUseTodayLayout(todayLayout);
     }
 
@@ -177,11 +191,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onCreate(Bundle savedInstanceState) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        mSharedPreferences = Utility.getLocationSharedPreferences(getContext());
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
         setHasOptionsMenu(true);
     }
 
     @OnItemClick({R.id.listview_forecast})
-    public void selectNewDay(int position){
+    public void selectNewDay(int position) {
         // if it cannot seek to that position.
         Cursor cursor = (Cursor) listView.getItemAtPosition(position);
         if (cursor != null) {
@@ -199,7 +215,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreateView");
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
-        ButterKnife.bind(this,mainView);
+        ButterKnife.bind(this, mainView);
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
         listView.setEmptyView(emptyTextView);
         listView.setAdapter(forecastAdapter);
@@ -247,12 +263,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         if (mPosition != ListView.INVALID_POSITION && !forecastAdapter.isEmpty()) {
             listView.setSelection(mPosition);
             listView.smoothScrollToPosition(mPosition);
-
-        } else{
-            boolean networkConnected = Utility.isNetworkConnected(getContext());
-            if (!networkConnected){
-                emptyTextView.setText(getContext().getString(R.string.empty_forecast_no_internet));
-            }
         }
     }
 
@@ -267,5 +277,36 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         updateWeather();
         getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
     }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.last_location_long))) {
+            int locationStatus = Utility.getLocationStatus(getContext());
+            String locationString = getString(R.string.empty_forecast);
+            switch (locationStatus) {
+                case SunshineSyncAdapter.LOCATION_STATUS_OK:
+                    locationString = "";
+                    break;
+                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                    locationString = getString(R.string.empty_forecast_server_down);
+                    break;
+                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                    locationString = getString(R.string.empty_forecast_server_invalid);
+                    break;
+                case SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN:
+                    locationString = getString(R.string.empty_forecast_server_unknown);
+                    break;
+                default:
+                    boolean networkConnected = Utility.isNetworkConnected(getContext());
+                    if (!networkConnected) {
+                        emptyTextView.setText(getContext().getString(R.string.empty_forecast_no_internet));
+                    }
+            }
+        }
+
+
+    }
 }
+
+
 

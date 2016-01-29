@@ -167,22 +167,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
     }
 
-    public void setLocationStatus(@LocationStatus int location){
-        SharedPreferences settings =getContext().getSharedPreferences(getContext().getString(R.string.last_shared_pref),Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt(getContext().getString(R.string.last_location_long), location);
-
-        // Commit the edits!
-        editor.commit();
-
+    private void setLocationStatus(@LocationStatus int location) {
+        Utility.setLocationStatus(getContext(),location);
     }
-    /**
-     * Take the String representing the complete forecast in JSON Format and
-     * pull out the data we need to construct the Strings needed for the wireframes.
-     * <p/>
-     * Fortunately parsing is easy:  constructor takes the JSON string and converts it
-     * into an Object hierarchy for us.
-     */
+
     private void getWeatherDataFromJson(String forecastJsonStr,
                                         String locationSetting)
             throws JSONException {
