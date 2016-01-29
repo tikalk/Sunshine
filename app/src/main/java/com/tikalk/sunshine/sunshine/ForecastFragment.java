@@ -281,30 +281,38 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(getString(R.string.last_location_long))) {
-            int locationStatus = Utility.getLocationStatus(getContext());
-            String locationString = getString(R.string.empty_forecast);
-            switch (locationStatus) {
-                case SunshineSyncAdapter.LOCATION_STATUS_OK:
-                    locationString = "";
-                    break;
-                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
-                    locationString = getString(R.string.empty_forecast_server_down);
-                    break;
-                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
-                    locationString = getString(R.string.empty_forecast_server_invalid);
-                    break;
-                case SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN:
-                    locationString = getString(R.string.empty_forecast_server_unknown);
-                    break;
-                default:
-                    boolean networkConnected = Utility.isNetworkConnected(getContext());
-                    if (!networkConnected) {
-                        emptyTextView.setText(getContext().getString(R.string.empty_forecast_no_internet));
-                    }
-            }
+            updateEmptyMessageStatus();
         }
 
 
+    }
+
+    private void updateEmptyMessageStatus() {
+        if (forecastAdapter.getCount() != 0) {
+            return;
+        }
+        int locationStatus = Utility.getLocationStatus(getContext());
+        String locationString = getString(R.string.empty_forecast);
+        switch (locationStatus) {
+            case SunshineSyncAdapter.LOCATION_STATUS_OK:
+                locationString = "";
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                locationString = getString(R.string.empty_forecast_server_down);
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                locationString = getString(R.string.empty_forecast_server_invalid);
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN:
+                locationString = getString(R.string.empty_forecast_server_unknown);
+                break;
+            default:
+                boolean networkConnected = Utility.isNetworkConnected(getContext());
+                if (!networkConnected) {
+                    emptyTextView.setText(getContext().getString(R.string.empty_forecast_no_internet));
+                }
+
+        }
     }
 }
 

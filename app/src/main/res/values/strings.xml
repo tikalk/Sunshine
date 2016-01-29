@@ -104,6 +104,9 @@
     <!-- Strings related to Notification preference -->
     <string name="pref_last_notification">last_notification</string>
     <string name="empty_forecast">No Weather Information available</string>
+    <string name="empty_forecast_server_down">No Weather Information available, server not available</string>
+    <string name="empty_forecast_server_invalid">No Weather Information available, server invalid</string>
+    <string name="empty_forecast_server_unknown">No Weather Information available, server is invalid</string>
     <string name="empty_forecast_no_internet">No Weather Information available. Internet Connection is not available.</string>
     <string name="last_shared_pref" translatable="false">last_sgared_pref</string>
     <string name="last_location_long" translatable="false">last_loc</string>
