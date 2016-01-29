@@ -74,9 +74,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int LOCATION_STATUS_SERVER_DOWN = 1;
     public static final int LOCATION_STATUS_SERVER_INVALID = 2;
     public static final int LOCATION_STATUS_UNKNOWN = 3;
-
+    public static final int LOCATION_STATUS_INVALID = 4;
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN})
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN,LOCATION_STATUS_INVALID})
     public @interface LocationStatus {
     }
 
@@ -177,6 +177,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         Gson gson = new GsonBuilder().create();
         WeatherData weatherData = gson.fromJson(forecastJsonStr, WeatherData.class);
+        final String cod = weatherData.getCod();
+        if(!cod.equals("200")){
+            Utility.setLocationStatus(getContext(),LOCATION_STATUS_INVALID);
+            return;
+        }
         Calendar calendar = Calendar.getInstance();
         Vector<ContentValues> cVVector = new Vector<>(weatherData.getList().size());
 

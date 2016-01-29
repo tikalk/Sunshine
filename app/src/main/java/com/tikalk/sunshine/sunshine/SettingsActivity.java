@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 
 import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
+import com.tikalk.sunshine.utils.Utility;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
@@ -52,7 +53,9 @@ public class SettingsActivity extends PreferenceActivity
     @Override
     public boolean onPreferenceChange(Preference preference, Object value) {
         String stringValue = value.toString();
-
+        if(  preference.getKey().equals(getString(R.string.pref_location_key))){
+            Utility.resetLocationStatus(this);
+        }
         if (preference instanceof ListPreference) {
             // For list preferences, look up the correct display value in
             // the preference's 'entries' list (since they have separate labels/values).

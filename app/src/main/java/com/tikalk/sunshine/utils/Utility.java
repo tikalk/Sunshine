@@ -30,11 +30,13 @@ public class Utility {
                 context.getString(R.string.pref_temp_units_metric))
                 .equals(context.getString(R.string.pref_temp_units_metric));
     }
+
     public static boolean showNotifications(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return new Boolean( prefs.getBoolean(context.getString(R.string.pref_notif_key),Boolean.parseBoolean(context.getString(R.string.pref_notif_default_value))));
+        return new Boolean(prefs.getBoolean(context.getString(R.string.pref_notif_key), Boolean.parseBoolean(context.getString(R.string.pref_notif_default_value))));
 
     }
+
     public static String formatTemperature(Context context, double temperature) {
         // Data stored in Celsius by default.  If user prefers to see in Fahrenheit, convert
         // the values here.
@@ -135,9 +137,9 @@ public class Utility {
         }
     }
 
-    public static boolean isNetworkConnected(Context context){
+    public static boolean isNetworkConnected(Context context) {
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
@@ -194,7 +196,11 @@ public class Utility {
         return String.format(context.getString(windFormat), windSpeed, direction);
     }
 
-    public static void setLocationStatus(Context context,@SunshineSyncAdapter.LocationStatus int location){
+    public static void resetLocationStatus(Context context) {
+        setLocationStatus(context, SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
+    }
+
+    public static void setLocationStatus(Context context, @SunshineSyncAdapter.LocationStatus int location) {
         SharedPreferences settings = getLocationSharedPreferences(context);
         SharedPreferences.Editor editor = settings.edit();
         editor.putInt(context.getString(R.string.last_location_long), location);
@@ -208,11 +214,12 @@ public class Utility {
     }
 
 
-    public static int getLocationStatus(Context context){
+    public static int getLocationStatus(Context context) {
         SharedPreferences settings = getLocationSharedPreferences(context);
-        return settings.getInt( context.getString(R.string.last_location_long), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
+        return settings.getInt(context.getString(R.string.last_location_long), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
 
     }
+
     /*
         * Helper method to provide the icon resource id according to the weather condition id returned
         * by the OpenWeatherMap call.
