@@ -197,7 +197,12 @@ public class Utility {
     }
 
     public static void resetLocationStatus(Context context) {
-        setLocationStatus(context, SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
+        SharedPreferences settings = getLocationSharedPreferences(context);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(context.getString(R.string.last_location_long), SunshineSyncAdapter.LOCATION_STATUS_INVALID);
+
+        // Commit the edits!
+        editor.apply();
     }
 
     public static void setLocationStatus(Context context, @SunshineSyncAdapter.LocationStatus int location) {

@@ -39,6 +39,7 @@ import com.tikalk.sunshine.utils.json.Weather;
 import com.tikalk.sunshine.utils.json.WeatherData;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -155,13 +156,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
         try {
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
+
         } catch (JSONException e) {
             setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
             return;
         }
-        setLocationStatus(LOCATION_STATUS_OK);
+
         // This will only happen if there was an error getting or parsing the forecast.
         return;
 
@@ -174,13 +176,20 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private void getWeatherDataFromJson(String forecastJsonStr,
                                         String locationSetting)
             throws JSONException {
-
+       if (  forecastJsonStr.contains("\"cod\":\"404\"")){
+           Utility.resetLocationStatus(getContext());
+           return;
+       }
         Gson gson = new GsonBuilder().create();
         WeatherData weatherData = gson.fromJson(forecastJsonStr, WeatherData.class);
         final String cod = weatherData.getCod();
         if(!cod.equals("200")){
-            Utility.setLocationStatus(getContext(),LOCATION_STATUS_INVALID);
-            return;
+            if (cod.equals("404")) {
+                  return;
+            } else {
+
+                return;
+            }
         }
         Calendar calendar = Calendar.getInstance();
         Vector<ContentValues> cVVector = new Vector<>(weatherData.getList().size());
@@ -223,6 +232,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         calendar.add(Calendar.DAY_OF_MONTH, -8);
         getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
                 WeatherContract.WeatherEntry.COLUMN_DATE + "<?", new String[]{Long.toString(delCalendar.getTime().getTime())});
+        setLocationStatus(LOCATION_STATUS_OK);
     }
 
 
