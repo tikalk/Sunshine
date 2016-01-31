@@ -1,5 +1,8 @@
 package com.tikalk.sunshine.sunshine;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,18 +18,24 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
-import com.squareup.okhttp.Call;
 import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
-import com.tikalk.sunshine.sunshine.tasks.FetchWeatherTask;
+import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
 import com.tikalk.sunshine.utils.Utility;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnItemClick;
 
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
     private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
     private static final String LAST_POSITION = "lastPosition";
+    public static final String LOCATION_TAG = "location";
     private int mPosition;
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -61,7 +70,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final String WEATHER_DATA = "WEATHER_DATA";
     public static final int FORECAST_LOADER_ID = 0;
     private ForecastAdapter forecastAdapter;
-    private FetchWeatherTask fetchWeatherTask;
+    @Bind(R.id.listview_forecast)
+    ListView listView;
+    @Bind(R.id.emptyList)
+    TextView emptyTextView;
+    private SharedPreferences mSharedPreferences;
 
     public ForecastFragment() {
 
@@ -88,12 +101,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onStop() {
         Log.d(FORECAST_FRAGMENT_TAG, "onStop");
-        if (fetchWeatherTask != null) {
-            fetchWeatherTask.cancel(true);
-        }
-        fetchWeatherTask = null;
         super.onStop();
     }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -104,10 +114,45 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         final int itemId = item.getItemId();
-        if (itemId == R.id.action_refresh) {
-            updateWeather();
+//        if (itemId == R.id.action_refresh) {
+//            updateWeather();
+//        }
+        if (itemId == R.id.action_map) {
+            openPreferredLocationInMap();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocationInMap() {
+        // Using the URI scheme for showing a location found on a map.  This super-handy
+        // intent can is detailed in the "Common Intents" page of Android's developer site:
+        // http://developer.android.com/guide/components/intents-common.html#Maps
+        if (null != this.forecastAdapter) {
+            Cursor c = forecastAdapter.getCursor();
+            if (null != c) {
+                c.moveToPosition(0);
+                String posLat = c.getString(COL_COORD_LAT);
+                String posLong = c.getString(COL_COORD_LONG);
+                Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(geoLocation);
+
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Log.d(FORECAST_FRAGMENT_TAG, "Couldn't call " + geoLocation.toString() + ", no receiving apps installed!");
+                }
+            }
+
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -124,14 +169,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void updateWeather() {
         Log.d(FORECAST_FRAGMENT_TAG, "updateWeather");
-        fetchWeatherTask = new FetchWeatherTask(getActivity());
+        SunshineSyncAdapter.syncImmediately(getContext());
+//        AlarmHelper.setAlarm(getContext(), SunshineService.AlarmReceiver.class);
 
-        String location = Utility.getPreferredLocation(getActivity());
-
-        fetchWeatherTask.execute(location);
     }
 
-    public void setTodayLayout(boolean todayLayout){
+    public void setTodayLayout(boolean todayLayout) {
         forecastAdapter.setUseTodayLayout(todayLayout);
     }
 
@@ -148,7 +191,23 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onCreate(Bundle savedInstanceState) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        mSharedPreferences = Utility.getLocationSharedPreferences(getContext());
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
         setHasOptionsMenu(true);
+    }
+
+    @OnItemClick({R.id.listview_forecast})
+    public void selectNewDay(int position) {
+        // if it cannot seek to that position.
+        Cursor cursor = (Cursor) listView.getItemAtPosition(position);
+        if (cursor != null) {
+            String locationSetting = Utility.getPreferredLocation(getActivity());
+            ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                    locationSetting, cursor.getLong(COL_WEATHER_DATE)));
+
+        }
+        mPosition = position;
+        listView.setSelection(mPosition);
     }
 
     @Override
@@ -156,30 +215,30 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         Log.d(FORECAST_FRAGMENT_TAG, "onCreateView");
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
-        ListView listView = (ListView) mainView.findViewById(R.id.listview_forecast);
-
+        ButterKnife.bind(this, mainView);
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
+        listView.setEmptyView(emptyTextView);
         listView.setAdapter(forecastAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    ((Callback) getActivity()).onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                            locationSetting, cursor.getLong(COL_WEATHER_DATE)));
-
-                }
-                mPosition = position;
-            }
-        });
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//
+//            @Override
+//            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+//                // CursorAdapter returns a cursor at the correct position for getItem(), or null
+//
+//            }
+//        });
         if (savedInstanceState != null && savedInstanceState.containsKey(LAST_POSITION)) {
             mPosition = savedInstanceState.getInt(LAST_POSITION);
         }
         return mainView;
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+        forecastAdapter.changeCursor(null);
     }
 
     @Override
@@ -201,8 +260,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(FORECAST_FRAGMENT_TAG, "onLoadFinished");
         forecastAdapter.swapCursor(data);
-        ListView listView = (ListView) getView().findViewById(R.id.listview_forecast);
-        if (mPosition != ListView.INVALID_POSITION) {
+        if (mPosition != ListView.INVALID_POSITION && !forecastAdapter.isEmpty()) {
+            listView.setSelection(mPosition);
             listView.smoothScrollToPosition(mPosition);
         }
     }
@@ -218,5 +277,47 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         updateWeather();
         getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
     }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.last_location_long))) {
+            updateEmptyMessageStatus();
+        }
+
+
+    }
+
+    private void updateEmptyMessageStatus() {
+        if (forecastAdapter.getCount() != 0) {
+            return;
+        }
+        int locationStatus = Utility.getLocationStatus(getContext());
+        String locationString = getString(R.string.empty_forecast);
+        switch (locationStatus) {
+            case SunshineSyncAdapter.LOCATION_STATUS_OK:
+                locationString = "";
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                locationString = getString(R.string.empty_forecast_server_down);
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                locationString = getString(R.string.empty_forecast_server_invalid);
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN:
+                locationString = getString(R.string.empty_forecast_server_unknown);
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                locationString = getString(R.string.empty_forecast_invalid_location);
+                break;
+            default:
+                if (!Utility.isNetworkConnected(getContext())) {
+                    locationString = getContext().getString(R.string.empty_forecast_no_internet);
+                }
+             break;
+        }
+        emptyTextView.setText(locationString);
+    }
 }
+
+
 

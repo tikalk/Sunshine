@@ -10,5 +10,7 @@
         android:entryValues="@array/pref_temp_unit_values"
         android:defaultValue="@string/pref_temp_units_default" >
     </ListPreference>
-
+    <CheckBoxPreference android:key="@string/pref_notif_key" android:title="@string/pref_notif_title"   android:summaryOff="@string/pref_enable_notifications_false"
+        android:summaryOn="@string/pref_enable_notifications_true"
+        android:defaultValue="@string/pref_notif_default_value"  />
 </PreferenceScreen>

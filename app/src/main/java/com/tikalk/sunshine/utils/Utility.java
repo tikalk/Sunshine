@@ -3,10 +3,13 @@ package com.tikalk.sunshine.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 
 import com.tikalk.sunshine.sunshine.R;
+import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,6 +29,24 @@ public class Utility {
         return prefs.getString(context.getString(R.string.pref_temp_unit_key),
                 context.getString(R.string.pref_temp_units_metric))
                 .equals(context.getString(R.string.pref_temp_units_metric));
+    }
+
+    public static boolean showNotifications(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return new Boolean(prefs.getBoolean(context.getString(R.string.pref_notif_key), Boolean.parseBoolean(context.getString(R.string.pref_notif_default_value))));
+
+    }
+
+    public static String formatTemperature(Context context, double temperature) {
+        // Data stored in Celsius by default.  If user prefers to see in Fahrenheit, convert
+        // the values here.
+        String suffix = "\u00B0";
+        if (!isMetric(context)) {
+            temperature = (temperature * 1.8) + 32;
+        }
+
+        // For presentation, assume the user doesn't care about tenths of a degree.
+        return String.format(context.getString(R.string.format_temperature), temperature);
     }
 
     public static String formatTemperature(Context context, double temperature, boolean isMetric) {
@@ -116,6 +137,15 @@ public class Utility {
         }
     }
 
+    public static boolean isNetworkConnected(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return isConnected;
+    }
+
     /**
      * Converts db date format to the format "Month day", e.g "June 24".
      *
@@ -164,6 +194,35 @@ public class Utility {
             direction = "NW";
         }
         return String.format(context.getString(windFormat), windSpeed, direction);
+    }
+
+    public static void resetLocationStatus(Context context) {
+        SharedPreferences settings = getLocationSharedPreferences(context);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(context.getString(R.string.last_location_long), SunshineSyncAdapter.LOCATION_STATUS_INVALID);
+
+        // Commit the edits!
+        editor.apply();
+    }
+
+    public static void setLocationStatus(Context context, @SunshineSyncAdapter.LocationStatus int location) {
+        SharedPreferences settings = getLocationSharedPreferences(context);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(context.getString(R.string.last_location_long), location);
+
+        // Commit the edits!
+        editor.commit();
+    }
+
+    public static SharedPreferences getLocationSharedPreferences(Context context) {
+        return context.getSharedPreferences(context.getString(R.string.last_shared_pref), Context.MODE_PRIVATE);
+    }
+
+
+    public static int getLocationStatus(Context context) {
+        SharedPreferences settings = getLocationSharedPreferences(context);
+        return settings.getInt(context.getString(R.string.last_location_long), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
+
     }
 
     /*
