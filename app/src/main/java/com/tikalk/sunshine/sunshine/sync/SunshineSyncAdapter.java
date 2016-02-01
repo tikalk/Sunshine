@@ -44,6 +44,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
@@ -76,13 +77,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int LOCATION_STATUS_SERVER_INVALID = 2;
     public static final int LOCATION_STATUS_UNKNOWN = 3;
     public static final int LOCATION_STATUS_INVALID = 4;
+
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN,LOCATION_STATUS_INVALID})
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_INVALID})
     public @interface LocationStatus {
     }
 
     private int locationStatus;
-
 
 
     @LocationStatus
@@ -132,14 +133,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             Response response = client.newCall(request).execute();
             if (!response.isSuccessful()) {
                 setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
-                Log.e(LOG_TAG, "Error "+response.message());
+                Log.e(LOG_TAG, "Error " + response.message());
                 // If the code didn't successfully get the weather data, there's no point in attemping
                 // to parse it.
                 return;
 
             }
             forecastJsonStr = response.body().string();
-            if (forecastJsonStr == null || forecastJsonStr.isEmpty()){
+            if (forecastJsonStr == null || forecastJsonStr.isEmpty()) {
                 setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
                 Log.e(LOG_TAG, "Error empty response from seerver");
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -170,27 +171,25 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void setLocationStatus(@LocationStatus int location) {
-        Utility.setLocationStatus(getContext(),location);
+        Utility.setLocationStatus(getContext(), location);
     }
 
     private void getWeatherDataFromJson(String forecastJsonStr,
                                         String locationSetting)
             throws JSONException {
-       if (  forecastJsonStr.contains("\"cod\":\"404\"")){
-           Utility.resetLocationStatus(getContext());
-           return;
-       }
-        Gson gson = new GsonBuilder().create();
-        WeatherData weatherData = gson.fromJson(forecastJsonStr, WeatherData.class);
-        final String cod = weatherData.getCod();
-        if(!cod.equals("200")){
-            if (cod.equals("404")) {
-                  return;
-            } else {
-
-                return;
+        final String COD = "cod";
+        JSONObject jsonObject = new JSONObject(forecastJsonStr);
+        if (jsonObject.has(COD)) {
+            int cod = jsonObject.getInt(COD);
+            if (cod != HttpURLConnection.HTTP_OK) {
+                if (cod == HttpURLConnection.HTTP_NOT_FOUND) {
+                    Utility.setLocationStatus(getContext(),LOCATION_STATUS_INVALID);
+                    return;
+                }
             }
         }
+        Gson gson = new GsonBuilder().create();
+        WeatherData weatherData = gson.fromJson(forecastJsonStr, WeatherData.class);
         Calendar calendar = Calendar.getInstance();
         Vector<ContentValues> cVVector = new Vector<>(weatherData.getList().size());
 
