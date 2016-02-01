@@ -111,4 +111,7 @@
     <string name="empty_forecast_invalid_location">No Weather Information available. Location is Invalid.</string>
     <string name="last_shared_pref" translatable="false">last_sgared_pref</string>
     <string name="last_location_long" translatable="false">last_loc</string>
+    <!-- Strings used when displaying the state of the Location in settings -->
+    <string name="pref_location_error_description">Invalid Location (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
+    <string name="pref_location_unknown_description">Validating Location... (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
 </resources>

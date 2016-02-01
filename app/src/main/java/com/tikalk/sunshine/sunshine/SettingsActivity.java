@@ -16,7 +16,7 @@ import com.tikalk.sunshine.utils.Utility;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
- * <p>
+ * <p/>
  * See <a href="http://developer.android.com/design/patterns/settings.html">
  * Android Design: Settings</a> for design guidelines and the <a
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
@@ -32,12 +32,13 @@ public class SettingsActivity extends PreferenceActivity
 
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_temp_unit_key)));
-     }
+    }
 
     /**
      * Attaches a listener so the summary is always updated with the preference value.
      * Also fires the listener once, to initialize the summary (so it shows up before the value
-     * is changed.)    */
+     * is changed.)
+     */
     private void bindPreferenceSummaryToValue(Preference preference) {
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(this);
@@ -53,7 +54,7 @@ public class SettingsActivity extends PreferenceActivity
     @Override
     public boolean onPreferenceChange(Preference preference, Object value) {
         String stringValue = value.toString();
-        if(  preference.getKey().equals(getString(R.string.pref_location_key))){
+        if (preference.getKey().equals(getString(R.string.pref_location_key))) {
             Utility.resetLocationStatus(this);
         }
         if (preference instanceof ListPreference) {
@@ -64,18 +65,36 @@ public class SettingsActivity extends PreferenceActivity
             if (prefIndex >= 0) {
                 preference.setSummary(listPreference.getEntries()[prefIndex]);
             }
-         } else {
-            // For other preferences, set the summary to the value's simple string representation.
-            preference.setSummary(stringValue);
-        }
+        } else if (preference.getKey().equals(getString(R.string.pref_location_key))) {
+                @SunshineSyncAdapter.LocationStatus int status = Utility.getLocationStatus(this);
+                switch (status) {
+                    case SunshineSyncAdapter.LOCATION_STATUS_OK:
+                        preference.setSummary(stringValue);
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN:
+                        preference.setSummary(getString(R.string.pref_location_unknown_description, value.toString()));
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                        preference.setSummary(getString(R.string.pref_location_error_description, value.toString()));
+                        break;
+                    default:
+                        // Note --- if the server is down we still assume the value
+                        // is valid
+                        preference.setSummary(stringValue);
+                }
+            } else {
+                // For other preferences, set the summary to the value's simple string representation.
+                preference.setSummary(stringValue);
+            }
         SunshineSyncAdapter.syncImmediately(getApplicationContext());
         return true;
-    }
+      }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public Intent getParentActivityIntent() {
-        return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);}
-
-
+        return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
+
+
+}
