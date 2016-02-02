@@ -14,6 +14,8 @@ import android.view.KeyEvent;
 import com.tikalk.sunshine.sunshine.sync.SunshineSyncAdapter;
 import com.tikalk.sunshine.utils.Utility;
 
+import timber.log.Timber;
+
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
  * <p/>
@@ -27,6 +29,7 @@ public class SettingsActivity extends PreferenceActivity
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Timber.tag(SettingsActivity.class.toString());
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preg_general);
 

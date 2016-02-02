@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.tikalk.sunshine.utils.Utility;
+import com.tikalk.sunshine.utils.log.CrashReportingTree;
 
 import timber.log.Timber;
 
@@ -26,6 +27,12 @@ public class MainActivity extends AppCompatActivity implements Callback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree());
+        } else {
+            Timber.plant(new CrashReportingTree());
+        }
+        Timber.tag(MainActivity.class.toString());
         Timber.d("onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
