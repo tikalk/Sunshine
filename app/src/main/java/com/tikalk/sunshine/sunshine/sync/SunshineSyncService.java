@@ -3,7 +3,7 @@ package com.tikalk.sunshine.sunshine.sync;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
+import timber.log.Timber;
 
 public class SunshineSyncService extends Service {
     private static final Object sSyncAdapterLock = new Object();
@@ -11,7 +11,7 @@ public class SunshineSyncService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d("SunshineSyncService", "onCreate - SunshineSyncService");
+        Timber.d("onCreate - SunshineSyncService");
         synchronized (sSyncAdapterLock) {
             if (sSunshineSyncAdapter == null) {
                 sSunshineSyncAdapter = new SunshineSyncAdapter(getApplicationContext(), true);

@@ -3,17 +3,14 @@ package com.tikalk.sunshine.sunshine;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
+
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-
-import com.tikalk.sunshine.sunshine.data.db.WeatherContract;
 import com.tikalk.sunshine.utils.Utility;
+
+import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements Callback {
 
@@ -21,16 +18,15 @@ public class MainActivity extends AppCompatActivity implements Callback {
     private String mLocation;
     private boolean mTwoPane;
 
-    private static final String MAIN_ACTIVITY_LOG = MainActivity.class.getName();
     @Override
     protected void onStart() {
-        Log.d(MAIN_ACTIVITY_LOG,"onStart");
+        Timber.d("onStart");
         super.onStart();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(MAIN_ACTIVITY_LOG,"onCreate");
+        Timber.d("onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (findViewById(R.id.weather_detail_container) != null) {
@@ -56,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements Callback {
 
     @Override
     protected void onPause() {
-        Log.d(MAIN_ACTIVITY_LOG,"onPause");
+        Timber.d("onPause");
         super.onPause();
     }
 
@@ -68,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements Callback {
 
     @Override
     protected void onResume() {
-        Log.d(MAIN_ACTIVITY_LOG,"onResume");
+        Timber.d("onResume");
         super.onResume();
         String location = Utility.getPreferredLocation(this);
         // update the location in our second pane using the fragment manager

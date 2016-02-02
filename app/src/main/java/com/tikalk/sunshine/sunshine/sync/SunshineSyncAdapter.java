@@ -22,7 +22,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -50,9 +49,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
 
+import timber.log.Timber;
+
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
-    public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
+
     private final OkHttpClient client = new OkHttpClient();
     // Interval at which to sync with the weather, in seconds.
     // 60 seconds (1 minute) * 180 = 3 hours
@@ -97,7 +98,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        Log.d(LOG_TAG, "onPerformSync Called.");
+        Timber.d( "onPerformSync Called.");
         String locationQuery = Utility.getPreferredLocation(getContext());
 
         String forecastJsonStr;
@@ -133,7 +134,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             Response response = client.newCall(request).execute();
             if (!response.isSuccessful()) {
                 setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
-                Log.e(LOG_TAG, "Error " + response.message());
+                Timber.e( "Error %s" , response.message());
                 // If the code didn't successfully get the weather data, there's no point in attemping
                 // to parse it.
                 return;
@@ -142,7 +143,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             forecastJsonStr = response.body().string();
             if (forecastJsonStr == null || forecastJsonStr.isEmpty()) {
                 setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
-                Log.e(LOG_TAG, "Error empty response from seerver");
+                Timber.e( "Error empty response from seerver");
                 // If the code didn't successfully get the weather data, there's no point in attemping
                 // to parse it.
                 return;
@@ -150,7 +151,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             notifyWeather();
         } catch (IOException e) {
             setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
-            Log.e(LOG_TAG, "Error ", e);
+            Timber.e( e,"Error ");
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
             return;
@@ -160,7 +161,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         } catch (JSONException e) {
             setLocationStatus(LOCATION_STATUS_SERVER_INVALID);
-            Log.e(LOG_TAG, e.getMessage(), e);
+            Timber.e(e, e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -433,8 +434,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 }
             }
         } catch (Exception ex) {
-            Log.d(LOG_TAG, ex.getMessage(), ex);
-            ex.printStackTrace();
+            Timber.d(ex, ex.getMessage());
         }
 
     }
