@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditTextPreference android:title="@string/pref_location_title" android:key="@string/pref_location_key"
-        android:defaultValue="@string/pref_location_defualt" android:inputType="text" android:singleLine="true"></EditTextPreference>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res/com.tikalk.sunshine.sunshine.views">
+    <com.tikalk.sunshine.sunshine.LocationEditTextPreference custom:minLength="3"
+        android:title="@string/pref_location_title" android:key="@string/pref_location_key"
+        android:defaultValue="@string/pref_location_defualt" android:inputType="text" android:singleLine="true"></com.tikalk.sunshine.sunshine.LocationEditTextPreference>
     <ListPreference
         android:title="@string/pref_temp_unit_title"
         android:key="@string/pref_temp_unit_key"
