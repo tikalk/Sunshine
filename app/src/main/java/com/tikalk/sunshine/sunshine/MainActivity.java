@@ -27,11 +27,7 @@ public class MainActivity extends AppCompatActivity implements Callback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (BuildConfig.DEBUG) {
-            Timber.plant(new Timber.DebugTree());
-        } else {
-            Timber.plant(new CrashReportingTree());
-        }
+
         Timber.tag(MainActivity.class.toString());
         Timber.d("onCreate");
         super.onCreate(savedInstanceState);
