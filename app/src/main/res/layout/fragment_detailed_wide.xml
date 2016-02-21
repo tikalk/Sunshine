@@ -38,7 +38,7 @@
         <!-- Main content: high, low, art, weather state -->
         <LinearLayout
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_width="wrap_content"
             android:orientation="vertical">
 

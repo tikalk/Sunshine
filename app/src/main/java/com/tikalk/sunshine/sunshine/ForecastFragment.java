@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,10 +29,10 @@ import com.tikalk.sunshine.utils.Utility;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnItemClick;
+import timber.log.Timber;
 
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
-    private static String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getName();
     private static final String LAST_POSITION = "lastPosition";
     public static final String LOCATION_TAG = "location";
     private int mPosition;
@@ -82,7 +81,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onPause() {
-        Log.d(FORECAST_FRAGMENT_TAG, "onPause");
+        Timber.d( "onPause");
         super.onPause();
     }
 
@@ -100,14 +99,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onStop() {
-        Log.d(FORECAST_FRAGMENT_TAG, "onStop");
+        Timber.d( "onStop");
         super.onStop();
     }
 
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Log.d(FORECAST_FRAGMENT_TAG, "onCreateOptionsMenu");
+        Timber.d( "onCreateOptionsMenu");
         inflater.inflate(R.menu.forecastfragment, menu);
     }
 
@@ -142,7 +141,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
                     startActivity(intent);
                 } else {
-                    Log.d(FORECAST_FRAGMENT_TAG, "Couldn't call " + geoLocation.toString() + ", no receiving apps installed!");
+                    Timber.d( "Couldn't call %s  , no receiving apps installed!", geoLocation.toString());
                 }
             }
 
@@ -157,18 +156,18 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onStart() {
-        Log.d(FORECAST_FRAGMENT_TAG, "onStart");
+        Timber.d( "onStart");
         super.onStart();
     }
 
     @Override
     public void onResume() {
-        Log.d(FORECAST_FRAGMENT_TAG, "onResume");
+        Timber.d( "onResume");
         super.onResume();
     }
 
     private void updateWeather() {
-        Log.d(FORECAST_FRAGMENT_TAG, "updateWeather");
+        Timber.d( "updateWeather");
         SunshineSyncAdapter.syncImmediately(getContext());
 //        AlarmHelper.setAlarm(getContext(), SunshineService.AlarmReceiver.class);
 
@@ -189,7 +188,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d(FORECAST_FRAGMENT_TAG, "onCreate");
+        Timber.d("onCreate");
         super.onCreate(savedInstanceState);
         mSharedPreferences = Utility.getLocationSharedPreferences(getContext());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
@@ -213,7 +212,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(FORECAST_FRAGMENT_TAG, "onCreateView");
+        Timber.d( "onCreateView");
         final View mainView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, mainView);
         this.forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
@@ -243,7 +242,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d(FORECAST_FRAGMENT_TAG, "onCreateLoader");
+        Timber.d( "onCreateLoader");
         String locationSetting = Utility.getPreferredLocation(getActivity());
 
         // Sort order:  Ascending, by date.
@@ -258,7 +257,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d(FORECAST_FRAGMENT_TAG, "onLoadFinished");
+        Timber.d( "onLoadFinished");
         forecastAdapter.swapCursor(data);
         if (mPosition != ListView.INVALID_POSITION && !forecastAdapter.isEmpty()) {
             listView.setSelection(mPosition);
@@ -268,12 +267,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Log.d(FORECAST_FRAGMENT_TAG, "onLoaderReset");
+        Timber.d( "onLoaderReset");
         forecastAdapter.swapCursor(null);
     }
 
     public void onLocationChanged() {
-        Log.d(FORECAST_FRAGMENT_TAG, "onLocationChanged");
+        Timber.d( "onLocationChanged");
         updateWeather();
         getLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
     }
